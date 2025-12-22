@@ -1,0 +1,54 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>Products - LiteCore Shop</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body onload="requireAuth()">
+  <header class="header">
+    <div class="brand">LiteCore Shop</div>
+    <nav>
+      <a href="home.html">Home</a>
+      <a href="cart.html">Cart</a>
+      <a href="account.html">Account</a>
+      <a href="#" onclick="logoutAndRedirect()">Logout</a>
+    </nav>
+  </header>
+
+  <div class="container">
+    <div class="card">
+      <h3>Products</h3>
+      <div class="grid" id="productsList"></div>
+    </div>
+  </div>
+
+<script src="auth.js"></script>
+<script>
+requireAuth();
+
+const products = [
+  {title:'Organic Milk', price:'₹50', img:'https://via.placeholder.com/160?text=Milk'},
+  {title:'Brown Bread', price:'₹40', img:'https://via.placeholder.com/160?text=Bread'},
+  {title:'Salted Butter', price:'₹120', img:'https://via.placeholder.com/160?text=Butter'},
+  {title:'Eggs (6 pcs)', price:'₹60', img:'https://via.placeholder.com/160?text=Eggs'},
+  {title:'Cheddar Cheese', price:'₹220', img:'https://via.placeholder.com/160?text=Cheese'}
+];
+
+function loadProducts(){
+  const wrap = document.getElementById('productsList');
+  for(const p of products){
+    const d = document.createElement('div'); d.className='product';
+    d.innerHTML = `<img src="${p.img}"><h4>${p.title}</h4><div class="small">${p.price}</div>
+      <div style="margin-top:10px"><button class="btn" onclick="add('${p.title}')">Add</button></div>`;
+    wrap.appendChild(d);
+  }
+}
+async function add(title){
+  const res = await apiPost('/cart/add',{ product: title });
+  if(res.status==='success') alert('Added to cart'); else alert(res.error||'Error');
+}
+loadProducts();
+</script>
+</body>
+</html>

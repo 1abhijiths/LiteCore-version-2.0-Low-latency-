@@ -1,0 +1,93 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>Home - LiteCore Shop</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body onload="requireAuth()">
+  <header class="header">
+    <div class="brand">LiteCore Shop</div>
+    <nav>
+      <a href="products.html">Products</a>
+      <a href="cart.html">My Cart</a>
+      <a href="account.html">Account</a>
+      <a href="#" onclick="logoutAndRedirect()">Logout</a>
+    </nav>
+  </header>
+
+  <div class="container">
+    <div class="card">
+      <h3>Quick Add</h3>
+      <p class="small">Choose a product and add to your cart instantly.</p>
+
+      <div style="display:flex;gap:12px">
+        <select id="quickProduct" class="input" style="flex:1">
+          <option value="">Select product...</option>
+          <option>Milk</option><option>Bread</option><option>Butter</option>
+          <option>Cheese</option><option>Eggs</option><option>Chocolate</option>
+        </select>
+        <button class="btn" onclick="quickAdd()">Add</button>
+      </div>
+
+      <div style="margin-top:14px">
+        <button class="btn ghost" onclick="refreshCart()">Refresh Cart</button>
+      </div>
+
+      <div style="margin-top:12px">
+        <h4>Your Cart</h4>
+        <pre id="cartPreview" style="white-space:pre-wrap">Loading...</pre>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Featured Products</h3>
+      <div class="grid" id="productGrid"></div>
+    </div>
+  </div>
+
+<script src="auth.js"></script>
+<script>
+requireAuth();
+
+async function quickAdd(){
+  const p = document.getElementById('quickProduct').value;
+  if(!p){ alert('select'); return; }
+  const res = await apiPost('/cart/add', { product: p });
+  alert(res.status === 'success' ? 'Added' : (res.error || 'Failed'));
+  refreshCart();
+}
+
+async function refreshCart(){
+  const list = await apiGet('/cart');
+  if(Array.isArray(list) && list.length) {
+    document.getElementById('cartPreview').textContent = list.map(x=>'• '+x.product).join('\\n');
+  } else {
+    document.getElementById('cartPreview').textContent = 'Cart empty';
+  }
+}
+
+/* small catalog rendered here (client-side) */
+const sampleProducts = [
+  {id:1,title:'Organic Milk',price:'₹ 50',img:'https://via.placeholder.com/160x120?text=Milk'},
+  {id:2,title:'Brown Bread',price:'₹ 40',img:'https://via.placeholder.com/160x120?text=Bread'},
+  {id:3,title:'Salted Butter',price:'₹ 120',img:'https://via.placeholder.com/160x120?text=Butter'},
+  {id:4,title:'Cheddar Cheese',price:'₹ 220',img:'https://via.placeholder.com/160x120?text=Cheese'}
+];
+
+function renderProducts(){
+  const grid = document.getElementById('productGrid');
+  grid.innerHTML = '';
+  for(const p of sampleProducts){
+    const el = document.createElement('div'); el.className='product';
+    el.innerHTML = `<img src="${p.img}" alt=""><h4>${p.title}</h4><div class="small">${p.price}</div>
+      <div style="margin-top:10px"><button class="btn" onclick="addFromCard('${p.title}')">Add to cart</button></div>`;
+    grid.appendChild(el);
+  }
+}
+renderProducts();
+async function addFromCard(product){ await apiPost('/cart/add',{product}); refreshCart(); }
+refreshCart();
+</script>
+</body>
+</html>

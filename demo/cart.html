@@ -1,0 +1,63 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>Cart - LiteCore Shop</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body onload="requireAuth()">
+  <header class="header">
+    <div class="brand">LiteCore Shop</div>
+    <nav>
+      <a href="home.html">Home</a>
+      <a href="products.html">Products</a>
+      <a href="account.html">Account</a>
+      <a href="#" onclick="logoutAndRedirect()">Logout</a>
+    </nav>
+  </header>
+
+  <div class="container">
+    <div class="card">
+      <h3>Your Cart</h3>
+      <ul id="cartItems" class="cart-list"></ul>
+      <div style="margin-top:12px">
+        <input id="removeName" class="input" placeholder="Product name to remove">
+        <button class="btn" onclick="removeItem()">Remove</button>
+      </div>
+    </div>
+  </div>
+
+<script src="auth.js"></script>
+<script>
+requireAuth();
+
+async function loadCart(){
+  const data = await apiGet('/cart');
+  const ul = document.getElementById('cartItems');
+  ul.innerHTML = '';
+  if(!Array.isArray(data) || data.length===0){
+    ul.innerHTML = '<li style="padding:12px">Your cart is empty.</li>'; return;
+  }
+  for(const item of data){
+    const li = document.createElement('li');
+    li.textContent = item.product;
+    const btn = document.createElement('button');
+    btn.className='btn ghost'; btn.style.marginLeft='12px'; btn.textContent='Remove';
+    btn.onclick = async () => { await apiDelete('/cart/remove',{ product: item.product }); loadCart(); };
+    li.appendChild(btn);
+    ul.appendChild(li);
+  }
+}
+
+async function removeItem(){
+  const name = document.getElementById('removeName').value.trim();
+  if(!name){ alert('enter'); return; }
+  const res = await apiDelete('/cart/remove',{ product: name });
+  alert(res.status==='success' ? 'Removed' : (res.error || 'Not found'));
+  loadCart();
+}
+
+loadCart();
+</script>
+</body>
+</html>

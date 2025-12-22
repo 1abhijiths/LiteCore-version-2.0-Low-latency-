@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>LiteCore Auth Demo</title>
+    <style>
+        body { font-family: Arial; padding: 20px; background: #f3f3f3; }
+        input, button { padding: 10px; margin: 5px 0; width: 260px; }
+        button { cursor: pointer; background: #007bff; border: none; color: white; }
+        button:hover { background: #0056b3; }
+        .box { background: white; padding: 20px; margin-top: 20px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+
+<h1>LiteCore Authentication System</h1>
+<p><b>Token Status:</b> <span id="tokenStatus">Not logged in</span></p>
+
+<!-- REGISTER -->
+<div class="box">
+    <h2>Register</h2>
+    <input id="reg_username" placeholder="Username"><br>
+    <input id="reg_password" type="password" placeholder="Password"><br>
+    <button onclick="registerUser()">Register</button>
+</div>
+
+<!-- LOGIN -->
+<div class="box">
+    <h2>Login</h2>
+    <input id="login_username" placeholder="Username"><br>
+    <input id="login_password" type="password" placeholder="Password"><br>
+    <button onclick="loginUser()">Login</button>
+    <button onclick="logoutUser()">Logout</button>
+</div>
+
+<!-- SHOW USERS -->
+<div class="box">
+    <h2>Show All Users (Protected)</h2>
+    <button onclick="getUsers()">Get Users</button>
+</div>
+
+<!-- UPDATE PASSWORD -->
+<div class="box">
+    <h2>Update Password (Protected)</h2>
+    <input id="upd_old_password" type="password" placeholder="Old Password"><br>
+    <input id="upd_new_password" type="password" placeholder="New Password"><br>
+    <button onclick="updateUser()">Update Password</button>
+</div>
+
+<!-- DELETE USER -->
+<div class="box">
+    <h2>Delete User (Protected)</h2>
+    <button onclick="deleteUser()">Delete My Account</button>
+</div>
+
+<!-- OUTPUT -->
+<div class="box">
+    <h2>Server Response</h2>
+    <pre id="output"></pre>
+</div>
+
+<script>
+const BASE_URL = "http://localhost:8080";
+
+// Save token after login
+function setToken(token) {
+    localStorage.setItem("token", token);
+    document.getElementById("tokenStatus").innerText = token ? "Token Available" : "Not logged in";
+}
+
+function getToken() {
+    return localStorage.getItem("token") || null;
+}
+
+function logoutUser() {
+    setToken(null);
+    localStorage.removeItem("token");
+    showOutput("Logged out");
+}
+
+// OUTPUT
+function showOutput(data) {
+    try { data = JSON.stringify(JSON.parse(data), null, 4); } catch(e){}
+    document.getElementById("output").textContent = data;
+}
+
+// REGISTER
+function registerUser() {
+    let u = document.getElementById("reg_username").value;
+    let p = document.getElementById("reg_password").value;
+    fetch(BASE_URL + "/register", {
+        method: "POST",
+        headers: {"Content-Type": "application/x-www-form-urlencoded"},
+        body: `username=${u}&password=${p}`
+    }).then(r => r.text()).then(showOutput);
+}
+
+// LOGIN
+function loginUser() {
+    let u = document.getElementById("login_username").value;
+    let p = document.getElementById("login_password").value;
+    fetch(BASE_URL + "/login", {
+        method: "POST",
+        headers: {"Content-Type": "application/x-www-form-urlencoded"},
+        body: `username=${u}&password=${p}`
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.token) setToken(data.token);
+        showOutput(JSON.stringify(data));
+    });
+}
+
+// GET USERS (Protected)
+function getUsers() {
+    fetch(BASE_URL + "/users", {
+        method: "GET",
+        headers: { "Authorization": getToken() }
+    }).then(r => r.text()).then(showOutput);
+}
+
+// UPDATE PASSWORD (Protected)
+function updateUser() {
+    let oldP = document.getElementById("upd_old_password").value;
+    let newP = document.getElementById("upd_new_password").value;
+    fetch(BASE_URL + "/update", {
+        method: "PUT",
+        headers: {"Content-Type": "application/x-www-form-urlencoded", "Authorization": getToken()},
+        body: `oldPassword=${oldP}&newPassword=${newP}`
+    }).then(r => r.text()).then(showOutput);
+}
+
+// DELETE USER (Protected)
+function deleteUser() {
+    fetch(BASE_URL + "/delete", {
+        method: "DELETE",
+        headers: {"Authorization": getToken()}
+    }).then(r => r.text()).then(showOutput);
+}
+
+// Show token status initially
+setToken(getToken());
+</script>
+
+</body>
+</html>
