@@ -21,21 +21,21 @@ JAR executable support
 
 Educational project demonstrating how backend frameworks work internally
 
-Project Structure
 LiteCore-version-2.0-Low-latency-
 │
 ├── src/
 │   ├── Main.java          # Entry point
 │   ├── LiteCore.java      # Core server engine
 │   ├── Request.java       # HTTP request parser
-│   ├── Response.java      # HTTP response builder
-│   ├── Middleware.java    # Middleware interface / logic
-│   ├── Pool.java          # Thread / connection pooling
+│   ├── Response.java     # HTTP response builder
+│   ├── Middleware.java   # Middleware interface / logic
+│   └── Pool.java         # Thread / connection pooling
 │
-├── lib/                   # External libraries (if any)
-├── demo/                  # Sample usage / demo code
-├── *.jar                  # Executable JAR files
+├── lib/                  # External libraries (if any)
+├── demo/                 # Sample usage / demo code
+├── *.jar                 # Executable JAR files
 └── README.md
+
 
 Architecture Overview
 
